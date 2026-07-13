@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retouch — Visual HTML Editor for AI-Generated Code</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236363f1'/><text x='16' y='22' text-anchor='middle' font-size='20' font-weight='bold' fill='white'>R</text></svg>">
+<script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+<style>
+  /* === Reset & Base === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #09090b; color: #f4f4f5; min-height: 100dvh; }
+
+  /* === Split Panels === */
+  .split { display: flex; height: calc(100dvh - 56px); }
+  .panel { overflow: auto; position: relative; }
+  .panel-code { width: 38%; background: #18181b; border-right: 1px solid #27272a; }
+  .panel-preview { width: 62%; background: #fafafa; }
+  .dark .panel-preview { background: #18181b; }
+  .panel-header {
+    padding: 8px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    background: #27272a; color: #a1a1aa; border-bottom: 1px solid #3f3f46;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* === Code Editor === */
+  #codeInput {
+    width: 100%; height: calc(100% - 36px); border: none; outline: none; resize: none;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6;
+    padding: 16px; background: transparent; color: #e4e4e7; tab-size: 2;
+  }
+  #codeInput::placeholder { color: #52525b; }
+
+  /* === Preview Area === */
+  #preview {
+    width: 100%; min-height: calc(100% - 36px); padding: 32px 48px;
+    position: relative; cursor: default;
+  }
+  #preview * { cursor: pointer; }
+
+  /* === Selected Element Highlight === */
+  #preview .retouch-selected {
+    outline: 2px solid #6366f1 !important;
+    outline-offset: 2px !important;
+    position: relative;
+  }
+
+  /* === Floating Toolbar === */
+  #toolbar {
+    display: none; position: fixed; z-index: 9999;
+    background: #18181b; border: 1px solid #3f3f46; border-radius: 10px;
+    padding: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    align-items: center; gap: 2px; backdrop-filter: blur(12px);
+  }
+  #toolbar.show { display: flex; }
+  #toolbar .sep { width: 1px; height: 24px; background: #3f3f46; margin: 0 4px; }
+  #toolbar button {
+    width: 32px; height: 32px; border: none; border-radius: 6px;
+    background: transparent; color: #d4d4d8; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all .12s;
+  }
+  #toolbar button:hover { background: #27272a; color: #f4f4f5; }
+  #toolbar button:active { background: #3f3f46; transform: scale(.95); }
+  #toolbar .color-input { width: 32px; height: 32px; padding: 3px; border: none; border-radius: 6px; cursor: pointer; background: transparent; }
+  #toolbar .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+  #toolbar .color-input::-webkit-color-swatch { border: 1px solid #3f3f46; border-radius: 4px; }
+
+  /* === Status & Messages === */
+  #emptyState {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    text-align: center; color: #a1a1aa; pointer-events: none;
+  }
+  #emptyState svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: .3; }
+  #emptyState h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #d4d4d8; }
+  #emptyState p { font-size: 13px; max-width: 280px; line-height: 1.5; }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #18181b; border: 1px solid #3f3f46; border-radius: 8px;
+    padding: 8px 20px; font-size: 13px; color: #d4d4d8;
+    opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99999;
+  }
+  #toast.show { opacity: 1; }
+
+  /* === Nav === */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 20px; border-bottom: 1px solid #27272a;
+    background: #09090b;
+  }
+  nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.03em; }
+  nav .logo svg { width: 28px; height: 28px; }
+  nav .logo span { background: linear-gradient(135deg,#818cf8,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  nav .actions { display: flex; align-items: center; gap: 8px; }
+  nav .actions button, nav .actions label {
+    padding: 6px 14px; border: 1px solid #3f3f46; border-radius: 8px;
+    font-size: 13px; font-weight: 500; cursor: pointer; background: #18181b;
+    color: #d4d4d8; transition: all .12s; display: flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  nav .actions button:hover, nav .actions label:hover { background: #27272a; border-color: #52525b; }
+  nav .actions .primary { background: #6366f1; border-color: #6366f1; color: white; }
+  nav .actions .primary:hover { background: #5558e6; }
+  nav .actions input[type=file] { display: none; }
+
+  /* === Resize Handle === */
+  .resize-handle {
+    width: 4px; cursor: col-resize; background: transparent;
+    position: absolute; top: 0; bottom: 0; left: 38%; z-index: 10;
+    transition: background .15s;
+  }
+  .resize-handle:hover, .resize-handle.active { background: #6366f1; }
+
+  /* === Responsive === */
+  @media (max-width: 768px) {
+    .split { flex-direction: column; height: auto; }
+    .panel-code { width: 100% !important; height: 50dvh; border-right: none; border-bottom: 1px solid #27272a; }
+    .panel-preview { width: 100% !important; height: 50dvh; }
+    .panel { flex: none !important; }
+    .resize-handle { display: none; }
+    #preview { padding: 16px; }
+  }
+
+  /* === Scrollbar === */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+  .panel-preview::-webkit-scrollbar { width: 8px; }
+  .panel-preview::-webkit-scrollbar-track { background: transparent; }
+  .panel-preview::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+  .panel-preview::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+  .dark .panel-preview::-webkit-scrollbar-thumb { background: #3f3f46; }
+  .dark .panel-preview::-webkit-scrollbar-thumb:hover { background: #52525b; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#6366f1"/><path d="M8 10h12M8 14h8M8 18h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+    <div><span>Retouch</span><span style="font-weight:400;color:#71717a;font-size:13px;margin-left:6px">visual editor</span></div>
+  </div>
+  <div class="actions">
+    <label for="fileUpload">Open File</label>
+    <input type="file" id="fileUpload" accept=".html,.htm">
+    <button onclick="exportHTML()">Export</button>
+  </div>
+</nav>
+
+<!-- Split Panels -->
+<div class="split">
+  <!-- Code Panel -->
+  <div class="panel panel-code" id="codePanel">
+    <div class="panel-header">HTML Code <span style="font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;color:#71717a">paste from ChatGPT / Claude / v0</span></div>
+    <textarea id="codeInput" placeholder='Paste your HTML here, then click "Render"&#10;&#10;Example:&#10;&lt;div style="text-align:center;padding:60px 20px"&gt;&#10;  &lt;h1&gt;Hello World&lt;/h1&gt;&#10;  &lt;p&gt;This is my page&lt;/p&gt;&#10;&lt;/div&gt;'></textarea>
+  </div>
+
+  <!-- Resize Handle -->
+  <div class="resize-handle" id="resizeHandle"></div>
+
+  <!-- Preview Panel -->
+  <div class="panel panel-preview" id="previewPanel">
+    <div class="panel-header">
+      Visual Preview
+      <button onclick="render()" class="primary" style="padding:4px 12px;border:none;border-radius:6px;background:#6366f1;color:white;font-size:12px;font-weight:500;cursor:pointer">Render</button>
+    </div>
+    <div id="preview">
+      <div id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <h3>No content yet</h3>
+        <p>Paste HTML on the left panel and click Render to edit visually</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Toolbar -->
+<div id="toolbar">
+  <button onclick="execEdit('bold')" title="Bold"><strong>B</strong></button>
+  <button onclick="execEdit('italic')" title="Italic"><em>I</em></button>
+  <div class="sep"></div>
+  <button onclick="execEdit('decreaseFont')" title="Smaller">A-</button>
+  <button onclick="execEdit('increaseFont')" title="Larger">A+</button>
+  <div class="sep"></div>
+  <label title="Text Color" style="display:flex;align-items:center;cursor:pointer">
+    <input type="color" class="color-input" id="textColorPicker" value="#ffffff" onchange="execEdit('textColor',this.value)" style="width:28px;height:28px">
+  </label>
+  <label title="Background Color" style="display:flex;align-items:center;cursor:pointer">
+    <input type="color" class="color-input" id="bgColorPicker" value="#6366f1" onchange="execEdit('bgColor',this.value)" style="width:28px;height:28px">
+  </label>
+  <div class="sep"></div>
+  <button onclick="execEdit('duplicate')" title="Duplicate">+</button>
+  <button onclick="execEdit('delete')" title="Delete">🗑</button>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// === State ===
+let currentCode = '';
+let selectedElement = null;
+let isResizing = false;
+
+// === Render ===
+function render() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) { showToast('Paste some HTML first'); return; }
+
+  const preview = document.getElementById('preview');
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+
+  // Reset selection
+  clearSelection();
+
+  // Create a wrapper to parse & contain
+  preview.innerHTML = code;
+
+  // Make all elements clickable
+  preview.querySelectorAll('*').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      selectElement(this);
+    });
+  });
+
+  // Click on empty area deselects
+  preview.addEventListener('click', function(e) {
+    if (e.target === this) clearSelection();
+  });
+
+  currentCode = preview.innerHTML;
+  showToast('Rendered! Click any element to edit');
+}
+
+// === Selection ===
+let selectionOverlay = null;
+
+function selectElement(el) {
+  clearSelection();
+  selectedElement = el;
+  el.classList.add('retouch-selected');
+
+  // Position toolbar near the element
+  positionToolbar(el);
+  document.getElementById('toolbar').classList.add('show');
+
+  // Update color pickers to match element
+  const cs = getComputedStyle(el);
+  document.getElementById('textColorPicker').value = rgbToHex(cs.color) || '#ffffff';
+  document.getElementById('bgColorPicker').value = rgbToHex(cs.backgroundColor) || '#6366f1';
+}
+
+function clearSelection() {
+  if (selectedElement) {
+    selectedElement.classList.remove('retouch-selected');
+    selectedElement = null;
+  }
+  document.getElementById('toolbar').classList.remove('show');
+}
+
+function positionToolbar(el) {
+  const tb = document.getElementById('toolbar');
+  const rect = el.getBoundingClientRect();
+  // Show briefly to measure, then reposition
+  tb.style.visibility = 'hidden';
+  tb.classList.add('show');
+  const tbWidth = tb.offsetWidth || 280;
+  const tbHeight = tb.offsetHeight || 44;
+  tb.classList.remove('show');
+  tb.style.visibility = '';
+
+  let left = rect.left + (rect.width / 2) - (tbWidth / 2);
+  let top = rect.top - tbHeight - 8;
+
+  // Clamp to viewport
+  if (left < 12) left = 12;
+  if (left + tbWidth > window.innerWidth - 12) left = window.innerWidth - tbWidth - 12;
+  if (top < 12) top = rect.bottom + 8;
+
+  tb.style.left = left + 'px';
+  tb.style.top = top + 'px';
+}
+
+// === Edit Commands ===
+function execEdit(command, value) {
+  if (!selectedElement) { showToast('Click an element first'); return; }
+
+  switch (command) {
+    case 'bold':
+      const isBold = selectedElement.style.fontWeight === '700' || selectedElement.style.fontWeight === 'bold';
+      selectedElement.style.fontWeight = isBold ? '400' : '700';
+      break;
+
+    case 'italic':
+      const isItalic = selectedElement.style.fontStyle === 'italic';
+      selectedElement.style.fontStyle = isItalic ? 'normal' : 'italic';
+      break;
+
+    case 'increaseFont':
+      const curSize = parseFloat(getComputedStyle(selectedElement).fontSize) || 16;
+      selectedElement.style.fontSize = Math.min(curSize + 2, 72) + 'px';
+      break;
+
+    case 'decreaseFont':
+      const curSz = parseFloat(getComputedStyle(selectedElement).fontSize) || 16;
+      selectedElement.style.fontSize = Math.max(curSz - 2, 8) + 'px';
+      break;
+
+    case 'textColor':
+      selectedElement.style.color = value;
+      break;
+
+    case 'bgColor':
+      selectedElement.style.backgroundColor = value;
+      break;
+
+    case 'duplicate':
+      if (selectedElement.parentNode) {
+        const clone = selectedElement.cloneNode(true);
+        selectedElement.parentNode.insertBefore(clone, selectedElement.nextSibling);
+        // Make clone clickable
+        clone.querySelectorAll('*').forEach(el => {
+          el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectElement(this);
+          });
+        });
+        clone.addEventListener('click', function(e) {
+          e.stopPropagation();
+          selectElement(this);
+        });
+        selectElement(clone);
+        syncCode();
+      }
+      break;
+
+    case 'delete':
+      if (selectedElement.parentNode) {
+        const next = selectedElement.nextElementSibling || selectedElement.previousElementSibling;
+        selectedElement.remove();
+        clearSelection();
+        if (next) selectElement(next);
+        syncCode();
+      }
+      break;
+  }
+
+  // Update color pickers after change
+  if (selectedElement) {
+    const cs = getComputedStyle(selectedElement);
+    document.getElementById('textColorPicker').value = rgbToHex(cs.color) || '#ffffff';
+    document.getElementById('bgColorPicker').value = rgbToHex(cs.backgroundColor) || '#6366f1';
+    // Reposition toolbar in case element moved
+    positionToolbar(selectedElement);
+  }
+
+  syncCode();
+}
+
+function syncCode() {
+  const preview = document.getElementById('preview');
+  // Skip empty state
+  const empty = document.getElementById('emptyState');
+  if (empty) return;
+  currentCode = preview.innerHTML;
+  document.getElementById('codeInput').value = currentCode;
+}
+
+// === Export ===
+function exportHTML() {
+  const preview = document.getElementById('preview');
+  const empty = document.getElementById('emptyState');
+  if (empty) { showToast('Nothing to export — paste HTML first'); return; }
+
+  // Clean up: remove our selection markers
+  preview.querySelectorAll('.retouch-selected').forEach(el => el.classList.remove('retouch-selected'));
+
+  const html = preview.innerHTML;
+  const fullDoc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Page</title>
+<style>
+  /* Your styles here */
+</style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+
+  const blob = new Blob([fullDoc], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'my-page.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Exported! File downloaded');
+}
+
+// === File Open ===
+document.getElementById('fileUpload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const text = ev.target.result;
+    // Extract body content
+    const bodyMatch = text.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const content = bodyMatch ? bodyMatch[1] : text;
+    document.getElementById('codeInput').value = content;
+    render();
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+// === Resize Panels ===
+const resizeHandle = document.getElementById('resizeHandle');
+const codePanel = document.getElementById('codePanel');
+
+resizeHandle.addEventListener('mousedown', function(e) {
+  isResizing = true;
+  this.classList.add('active');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!isResizing) return;
+  const pct = (e.clientX / window.innerWidth) * 100;
+  const clamped = Math.max(20, Math.min(60, pct));
+  codePanel.style.width = clamped + '%';
+  resizeHandle.style.left = clamped + '%';
+});
+
+document.addEventListener('mouseup', function() {
+  if (isResizing) {
+    isResizing = false;
+    resizeHandle.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+});
+
+// === Keyboard shortcuts ===
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') clearSelection();
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); render(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportHTML(); }
+});
+
+// === Toast ===
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// === Utility: rgb to hex ===
+function rgbToHex(rgb) {
+  if (!rgb || rgb === 'rgba(0, 0, 0, 0)') return '#ffffff';
+  const m = rgb.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (!m) return null;
+  const r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+  return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+// === Handle global click to deselect ===
+document.addEventListener('click', function(e) {
+  const tb = document.getElementById('toolbar');
+  if (tb.classList.contains('show') && !tb.contains(e.target)) {
+    // Check if click is on preview element
+    const preview = document.getElementById('preview');
+    if (!preview.contains(e.target)) {
+      clearSelection();
+    }
+  }
+});
+
+console.log('Retouch ready — paste HTML, click Render, then click elements to edit');
+</script>
+</body>
+</html>
