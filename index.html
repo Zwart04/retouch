@@ -4,136 +4,182 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Retouch — Visual HTML Editor for AI-Generated Code</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236363f1'/><text x='16' y='22' text-anchor='middle' font-size='20' font-weight='bold' fill='white'>R</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text x='16' y='22' text-anchor='middle' font-size='20' font-weight='bold' fill='white'>R</text></svg>">
 <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 <style>
-  /* === Reset & Base === */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #09090b; color: #f4f4f5; min-height: 100dvh; }
+/* === Reset & Base === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #09090b; color: #f4f4f5; min-height: 100dvh; }
 
-  /* === Split Panels === */
-  .split { display: flex; height: calc(100dvh - 56px); }
-  .panel { overflow: auto; position: relative; }
-  .panel-code { width: 38%; background: #18181b; border-right: 1px solid #27272a; }
-  .panel-preview { width: 62%; background: #fafafa; }
-  .dark .panel-preview { background: #18181b; }
-  .panel-header {
-    padding: 8px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-    background: #27272a; color: #a1a1aa; border-bottom: 1px solid #3f3f46;
-    display: flex; align-items: center; justify-content: space-between;
-  }
+/* === Split Panels === */
+.split { display: flex; height: calc(100dvh - 56px); }
+.panel { overflow: auto; position: relative; }
+.panel-code { width: 38%; background: #18181b; border-right: 1px solid #27272a; }
+.panel-preview { width: 62%; background: #fafafa; }
+.dark .panel-preview { background: #18181b; }
+.panel-header {
+  padding: 8px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  background: #27272a; color: #a1a1aa; border-bottom: 1px solid #3f3f46;
+  display: flex; align-items: center; justify-content: space-between;
+}
 
-  /* === Code Editor === */
-  #codeInput {
-    width: 100%; height: calc(100% - 36px); border: none; outline: none; resize: none;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6;
-    padding: 16px; background: transparent; color: #e4e4e7; tab-size: 2;
-  }
-  #codeInput::placeholder { color: #52525b; }
+/* === Code Editor === */
+#codeInput {
+  width: 100%; height: calc(100% - 36px); border: none; outline: none; resize: none;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6;
+  padding: 16px; background: transparent; color: #e4e4e7; tab-size: 2;
+}
+#codeInput::placeholder { color: #52525b; }
 
-  /* === Preview Area === */
-  #preview {
-    width: 100%; min-height: calc(100% - 36px); padding: 32px 48px;
-    position: relative; cursor: default;
-  }
-  #preview * { cursor: pointer; }
+/* === Preview Area === */
+#preview {
+  width: 100%; min-height: calc(100% - 36px); padding: 32px 48px;
+  position: relative; cursor: default;
+}
+#preview * { cursor: pointer; }
 
-  /* === Selected Element Highlight === */
-  #preview .retouch-selected {
-    outline: 2px solid #6366f1 !important;
-    outline-offset: 2px !important;
-    position: relative;
-  }
+/* === Selected Element Highlight === */
+#preview .retouch-selected {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px !important;
+  position: relative;
+}
 
-  /* === Floating Toolbar === */
-  #toolbar {
-    display: none; position: fixed; z-index: 9999;
-    background: #18181b; border: 1px solid #3f3f46; border-radius: 10px;
-    padding: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
-    align-items: center; gap: 2px; backdrop-filter: blur(12px);
-  }
-  #toolbar.show { display: flex; }
-  #toolbar .sep { width: 1px; height: 24px; background: #3f3f46; margin: 0 4px; }
-  #toolbar button {
-    width: 32px; height: 32px; border: none; border-radius: 6px;
-    background: transparent; color: #d4d4d8; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; transition: all .12s;
-  }
-  #toolbar button:hover { background: #27272a; color: #f4f4f5; }
-  #toolbar button:active { background: #3f3f46; transform: scale(.95); }
-  #toolbar .color-input { width: 32px; height: 32px; padding: 3px; border: none; border-radius: 6px; cursor: pointer; background: transparent; }
-  #toolbar .color-input::-webkit-color-swatch-wrapper { padding: 0; }
-  #toolbar .color-input::-webkit-color-swatch { border: 1px solid #3f3f46; border-radius: 4px; }
+/* === Drag Ghost === */
+.retouch-drag-above { outline: 2px dashed #22d3ee !important; outline-offset: 2px !important; }
+.retouch-drag-below { outline: 2px dashed #fbbf24 !important; outline-offset: 2px !important; }
 
-  /* === Status & Messages === */
-  #emptyState {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    text-align: center; color: #a1a1aa; pointer-events: none;
-  }
-  #emptyState svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: .3; }
-  #emptyState h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #d4d4d8; }
-  #emptyState p { font-size: 13px; max-width: 280px; line-height: 1.5; }
-  #toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #18181b; border: 1px solid #3f3f46; border-radius: 8px;
-    padding: 8px 20px; font-size: 13px; color: #d4d4d8;
-    opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99999;
-  }
-  #toast.show { opacity: 1; }
+/* === Floating Toolbar === */
+#toolbar {
+  display: none; position: fixed; z-index: 9999;
+  background: #18181b; border: 1px solid #3f3f46; border-radius: 10px;
+  padding: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  align-items: center; gap: 2px; backdrop-filter: blur(12px);
+  flex-wrap: wrap; max-width: min(520px, calc(100vw - 24px));
+}
+#toolbar.show { display: flex; }
+#toolbar .sep { width: 1px; height: 24px; background: #3f3f46; margin: 0 4px; flex-shrink: 0; }
+#toolbar button {
+  width: 32px; height: 32px; border: none; border-radius: 6px;
+  background: transparent; color: #d4d4d8; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: all .12s; flex-shrink: 0;
+}
+#toolbar button:hover { background: #27272a; color: #f4f4f5; }
+#toolbar button:active { background: #3f3f46; transform: scale(.95); }
+#toolbar button.active { background: #6366f1 !important; color: white !important; }
+#toolbar .color-input { width: 28px; height: 28px; padding: 2px; border: none; border-radius: 6px; cursor: pointer; background: transparent; flex-shrink: 0; }
+#toolbar .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+#toolbar .color-input::-webkit-color-swatch { border: 1px solid #3f3f46; border-radius: 4px; }
+#toolbar select {
+  height: 28px; border: none; border-radius: 6px; background: #27272a;
+  color: #d4d4d8; font-size: 11px; padding: 0 6px; cursor: pointer;
+  outline: none; max-width: 110px;
+}
+#toolbar select:hover { background: #3f3f46; }
+#toolbar .move-btn { font-size: 16px; width: 28px; height: 28px; }
 
-  /* === Nav === */
-  nav {
-    display: flex; align-items: center; justify-content: space-between;
-    height: 56px; padding: 0 20px; border-bottom: 1px solid #27272a;
-    background: #09090b;
-  }
-  nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.03em; }
-  nav .logo svg { width: 28px; height: 28px; }
-  nav .logo span { background: linear-gradient(135deg,#818cf8,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  nav .actions { display: flex; align-items: center; gap: 8px; }
-  nav .actions button, nav .actions label {
-    padding: 6px 14px; border: 1px solid #3f3f46; border-radius: 8px;
-    font-size: 13px; font-weight: 500; cursor: pointer; background: #18181b;
-    color: #d4d4d8; transition: all .12s; display: flex; align-items: center; gap: 6px;
-    white-space: nowrap;
-  }
-  nav .actions button:hover, nav .actions label:hover { background: #27272a; border-color: #52525b; }
-  nav .actions .primary { background: #6366f1; border-color: #6366f1; color: white; }
-  nav .actions .primary:hover { background: #5558e6; }
-  nav .actions input[type=file] { display: none; }
+/* === Inline Editing === */
+#preview .retouch-editing {
+  outline: 2px solid #22d3ee !important;
+  outline-offset: 1px !important;
+  cursor: text !important;
+  user-select: text !important;
+}
 
-  /* === Resize Handle === */
-  .resize-handle {
-    width: 4px; cursor: col-resize; background: transparent;
-    position: absolute; top: 0; bottom: 0; left: 38%; z-index: 10;
-    transition: background .15s;
-  }
-  .resize-handle:hover, .resize-handle.active { background: #6366f1; }
+/* === Add Element Dropdown === */
+.add-menu {
+  display: none; position: fixed; z-index: 10000;
+  background: #18181b; border: 1px solid #3f3f46; border-radius: 10px;
+  padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  flex-direction: column; gap: 2px;
+}
+.add-menu.show { display: flex; }
+.add-menu button {
+  padding: 6px 16px; border: none; border-radius: 6px;
+  background: transparent; color: #d4d4d8; cursor: pointer;
+  font-size: 12px; text-align: left; white-space: nowrap;
+  transition: all .12s;
+}
+.add-menu button:hover { background: #27272a; color: #f4f4f5; }
 
-  /* === Responsive === */
-  @media (max-width: 768px) {
-    .split { flex-direction: column; height: auto; }
-    .panel-code { width: 100% !important; height: 50dvh; border-right: none; border-bottom: 1px solid #27272a; }
-    .panel-preview { width: 100% !important; height: 50dvh; }
-    .panel { flex: none !important; }
-    .resize-handle { display: none; }
-    #preview { padding: 16px; }
-  }
+/* === Status & Messages === */
+#emptyState {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center; color: #a1a1aa; pointer-events: none;
+}
+#emptyState svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: .3; }
+#emptyState h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #d4d4d8; }
+#emptyState p { font-size: 13px; max-width: 280px; line-height: 1.5; }
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #18181b; border: 1px solid #3f3f46; border-radius: 8px;
+  padding: 8px 20px; font-size: 13px; color: #d4d4d8;
+  opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99999;
+}
+#toast.show { opacity: 1; }
 
-  /* === Scrollbar === */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+/* === Nav === */
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; padding: 0 20px; border-bottom: 1px solid #27272a;
+  background: #09090b;
+}
+nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.03em; }
+nav .logo svg { width: 28px; height: 28px; }
+nav .logo span { background: linear-gradient(135deg,#818cf8,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+nav .actions { display: flex; align-items: center; gap: 8px; }
+nav .actions button, nav .actions label {
+  padding: 6px 14px; border: 1px solid #3f3f46; border-radius: 8px;
+  font-size: 13px; font-weight: 500; cursor: pointer; background: #18181b;
+  color: #d4d4d8; transition: all .12s; display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+nav .actions button:hover, nav .actions label:hover { background: #27272a; border-color: #52525b; }
+nav .actions .primary { background: #6366f1; border-color: #6366f1; color: white; }
+nav .actions .primary:hover { background: #5558e6; }
+nav .actions input[type=file] { display: none; }
+nav .actions .undo-redo {
+  padding: 6px 8px; border: 1px solid #3f3f46; border-radius: 8px;
+  background: #18181b; color: #d4d4d8; cursor: pointer; transition: all .12s;
+  display: flex; align-items: center; gap: 4px; font-size: 12px;
+}
+nav .actions .undo-redo:hover { background: #27272a; }
+nav .actions .undo-redo:disabled { opacity: 0.35; cursor: not-allowed; }
+nav .actions .undo-redo:hover:disabled { background: #18181b; }
+nav .undo-group { display: flex; gap: 2px; }
 
-  .panel-preview::-webkit-scrollbar { width: 8px; }
-  .panel-preview::-webkit-scrollbar-track { background: transparent; }
-  .panel-preview::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
-  .panel-preview::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
-  .dark .panel-preview::-webkit-scrollbar-thumb { background: #3f3f46; }
-  .dark .panel-preview::-webkit-scrollbar-thumb:hover { background: #52525b; }
+/* === Resize Handle === */
+.resize-handle {
+  width: 4px; cursor: col-resize; background: transparent;
+  position: absolute; top: 0; bottom: 0; left: 38%; z-index: 10;
+  transition: background .15s;
+}
+.resize-handle:hover, .resize-handle.active { background: #6366f1; }
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .split { flex-direction: column; height: auto; }
+  .panel-code { width: 100% !important; height: 50dvh; border-right: none; border-bottom: 1px solid #27272a; }
+  .panel-preview { width: 100% !important; height: 50dvh; }
+  .panel { flex: none !important; }
+  .resize-handle { display: none; }
+  #preview { padding: 16px; }
+  #toolbar { max-width: calc(100vw - 16px); }
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
+.panel-preview::-webkit-scrollbar { width: 8px; }
+.panel-preview::-webkit-scrollbar-track { background: transparent; }
+.panel-preview::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+.panel-preview::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+.dark .panel-preview::-webkit-scrollbar-thumb { background: #3f3f46; }
+.dark .panel-preview::-webkit-scrollbar-thumb:hover { background: #52525b; }
 </style>
 </head>
 <body>
@@ -145,7 +191,11 @@
     <div><span>Retouch</span><span style="font-weight:400;color:#71717a;font-size:13px;margin-left:6px">visual editor</span></div>
   </div>
   <div class="actions">
-    <label for="fileUpload">Open File</label>
+    <div class="undo-group">
+      <button class="undo-redo" id="undoBtn" onclick="undo()" disabled title="Undo (Ctrl+Z)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+      <button class="undo-redo" id="redoBtn" onclick="redo()" disabled title="Redo (Ctrl+Shift+Z)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+    </div>
+    <label for="fileUpload">Open</label>
     <input type="file" id="fileUpload" accept=".html,.htm">
     <button onclick="exportHTML()">Export</button>
   </div>
@@ -180,11 +230,31 @@
 
 <!-- Floating Toolbar -->
 <div id="toolbar">
-  <button onclick="execEdit('bold')" title="Bold"><strong>B</strong></button>
-  <button onclick="execEdit('italic')" title="Italic"><em>I</em></button>
+  <!-- Row 1: Formatting -->
+  <button onclick="execEdit('bold')" title="Bold (Ctrl+B)"><strong>B</strong></button>
+  <button onclick="execEdit('italic')" title="Italic (Ctrl+I)"><em>I</em></button>
+  <button onclick="execEdit('underline')" title="Underline (Ctrl+U)"><span style="text-decoration:underline">U</span></button>
   <div class="sep"></div>
   <button onclick="execEdit('decreaseFont')" title="Smaller">A-</button>
   <button onclick="execEdit('increaseFont')" title="Larger">A+</button>
+  <div class="sep"></div>
+  <select id="fontFamilySelect" onchange="execEdit('fontFamily',this.value)" title="Font Family">
+    <option value="">Font</option>
+    <option value="Inter, system-ui, sans-serif">Inter</option>
+    <option value="Georgia, serif">Georgia</option>
+    <option value="'Times New Roman', serif">Times New Roman</option>
+    <option value="'Courier New', monospace">Courier New</option>
+    <option value="Arial, sans-serif">Arial</option>
+    <option value="'Segoe UI', system-ui, sans-serif">Segoe UI</option>
+    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+    <option value="Verdana, sans-serif">Verdana</option>
+    <option value="'Garamond', serif">Garamond</option>
+    <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+  </select>
+  <div class="sep"></div>
+  <button onclick="execEdit('alignLeft')" title="Align Left">&#8676;</button>
+  <button onclick="execEdit('alignCenter')" title="Align Center">&equiv;</button>
+  <button onclick="execEdit('alignRight')" title="Align Right">&#8677;</button>
   <div class="sep"></div>
   <label title="Text Color" style="display:flex;align-items:center;cursor:pointer">
     <input type="color" class="color-input" id="textColorPicker" value="#ffffff" onchange="execEdit('textColor',this.value)" style="width:28px;height:28px">
@@ -193,8 +263,27 @@
     <input type="color" class="color-input" id="bgColorPicker" value="#6366f1" onchange="execEdit('bgColor',this.value)" style="width:28px;height:28px">
   </label>
   <div class="sep"></div>
-  <button onclick="execEdit('duplicate')" title="Duplicate">+</button>
-  <button onclick="execEdit('delete')" title="Delete">🗑</button>
+  <button onclick="execEdit('paddingSmall')" title="Padding: Small" style="font-size:10px">Pd-S</button>
+  <button onclick="execEdit('paddingMedium')" title="Padding: Medium" style="font-size:10px">Pd-M</button>
+  <button onclick="execEdit('paddingLarge')" title="Padding: Large" style="font-size:10px">Pd-L</button>
+  <div class="sep"></div>
+  <button onclick="execEdit('moveUp')" title="Move Up" class="move-btn">&uarr;</button>
+  <button onclick="execEdit('moveDown')" title="Move Down" class="move-btn">&darr;</button>
+  <div class="sep"></div>
+  <button onclick="toggleAddMenu()" title="Add Element" style="font-size:16px;font-weight:bold;background:#27272a">+</button>
+  <button onclick="execEdit('duplicate')" title="Duplicate" style="font-size:13px">&#x2398;</button>
+  <button onclick="execEdit('delete')" title="Delete" style="color:#f87171">&#x2715;</button>
+</div>
+
+<!-- Add Element Menu -->
+<div class="add-menu" id="addMenu">
+  <button onclick="addElement('div')">Add &lt;div&gt;</button>
+  <button onclick="addElement('h1')">Add &lt;h1&gt; Heading</button>
+  <button onclick="addElement('h2')">Add &lt;h2&gt; Heading</button>
+  <button onclick="addElement('p')">Add &lt;p&gt; Paragraph</button>
+  <button onclick="addElement('img')">Add &lt;img&gt; Image</button>
+  <button onclick="addElement('a')">Add &lt;a&gt; Link</button>
+  <button onclick="addElement('button')">Add &lt;button&gt;</button>
 </div>
 
 <!-- Toast -->
@@ -205,6 +294,60 @@
 let currentCode = '';
 let selectedElement = null;
 let isResizing = false;
+let isInlineEditing = false;
+const FONT_SIZE_MIN = 8;
+const FONT_SIZE_MAX = 72;
+const FONT_SIZE_STEP = 2;
+
+// === History (Undo/Redo) ===
+const MAX_HISTORY = 50;
+let historyStack = [];
+let historyIndex = -1;
+
+function pushHistory() {
+  const preview = document.getElementById('preview');
+  const empty = document.getElementById('emptyState');
+  if (empty) return;
+  // Remove selection artifacts from snapshot
+  preview.querySelectorAll('.retouch-selected').forEach(el => el.classList.remove('retouch-selected'));
+  const state = preview.innerHTML;
+  // Trim future if we're in the middle
+  if (historyIndex < historyStack.length - 1) {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+  }
+  historyStack.push(state);
+  if (historyStack.length > MAX_HISTORY) historyStack.shift();
+  historyIndex = historyStack.length - 1;
+  updateUndoButtons();
+}
+
+function applyHistoryState(state) {
+  const preview = document.getElementById('preview');
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+  clearSelection();
+  preview.innerHTML = state;
+  attachClickHandlers(preview);
+  syncCode();
+  updateUndoButtons();
+}
+
+function undo() {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  applyHistoryState(historyStack[historyIndex]);
+}
+
+function redo() {
+  if (historyIndex >= historyStack.length - 1) return;
+  historyIndex++;
+  applyHistoryState(historyStack[historyIndex]);
+}
+
+function updateUndoButtons() {
+  document.getElementById('undoBtn').disabled = historyIndex <= 0;
+  document.getElementById('redoBtn').disabled = historyIndex >= historyStack.length - 1;
+}
 
 // === Render ===
 function render() {
@@ -215,19 +358,10 @@ function render() {
   const empty = document.getElementById('emptyState');
   if (empty) empty.remove();
 
-  // Reset selection
   clearSelection();
 
-  // Create a wrapper to parse & contain
   preview.innerHTML = code;
-
-  // Make all elements clickable
-  preview.querySelectorAll('*').forEach(el => {
-    el.addEventListener('click', function(e) {
-      e.stopPropagation();
-      selectElement(this);
-    });
-  });
+  attachClickHandlers(preview);
 
   // Click on empty area deselects
   preview.addEventListener('click', function(e) {
@@ -235,12 +369,76 @@ function render() {
   });
 
   currentCode = preview.innerHTML;
+  historyStack = [currentCode];
+  historyIndex = 0;
+  updateUndoButtons();
   showToast('Rendered! Click any element to edit');
 }
 
-// === Selection ===
-let selectionOverlay = null;
+function attachClickHandlers(container) {
+  container.querySelectorAll('*').forEach(el => {
+    if (el.classList.contains('retouch-no-handler')) return;
+    el.addEventListener('click', function(e) {
+      if (isInlineEditing) return;
+      e.stopPropagation();
+      selectElement(this);
+    });
+    el.addEventListener('dblclick', function(e) {
+      e.stopPropagation();
+      startInlineEdit(this);
+    });
+  });
+  // Also attach to newly added or changed elements
+  container.querySelectorAll('*').forEach(el => {
+    if (el._rtHandlersAttached) return;
+    el._rtHandlersAttached = true;
+  });
+}
 
+// === Inline Text Editing ===
+function startInlineEdit(el) {
+  if (el.tagName === 'IMG' || el.tagName === 'BR' || el.tagName === 'HR') return;
+  // Don't edit if it contains complex children (images, inputs, etc.)
+  const hasVoidChildren = el.querySelectorAll('img, input, textarea, select, button, iframe').length > 0;
+  if (hasVoidChildren && el.childNodes.length > 0) {
+    // Try to edit just the text nodes
+  }
+  
+  clearSelection();
+  isInlineEditing = true;
+  el.classList.add('retouch-editing');
+  el.contentEditable = 'true';
+  el.focus();
+  
+  // Select all text inside
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  
+  const finish = () => {
+    el.contentEditable = 'false';
+    el.classList.remove('retouch-editing');
+    isInlineEditing = false;
+    pushHistory();
+    syncCode();
+  };
+  
+  el.addEventListener('blur', function handler() {
+    el.removeEventListener('blur', handler);
+    finish();
+  }, { once: true });
+  
+  el.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
+      e.preventDefault();
+      el.blur();
+    }
+  });
+}
+
+// === Selection ===
 function selectElement(el) {
   clearSelection();
   selectedElement = el;
@@ -250,10 +448,22 @@ function selectElement(el) {
   positionToolbar(el);
   document.getElementById('toolbar').classList.add('show');
 
-  // Update color pickers to match element
+  // Update controls to match element
   const cs = getComputedStyle(el);
   document.getElementById('textColorPicker').value = rgbToHex(cs.color) || '#ffffff';
   document.getElementById('bgColorPicker').value = rgbToHex(cs.backgroundColor) || '#6366f1';
+  
+  // Update font-family select
+  const ff = el.style.fontFamily || '';
+  document.getElementById('fontFamilySelect').value = '';
+  if (ff) {
+    for (let opt of document.getElementById('fontFamilySelect').options) {
+      if (opt.value && ff.includes(opt.value.split(',')[0].replace(/['"]/g, ''))) {
+        document.getElementById('fontFamilySelect').value = opt.value;
+        break;
+      }
+    }
+  }
 }
 
 function clearSelection() {
@@ -262,15 +472,16 @@ function clearSelection() {
     selectedElement = null;
   }
   document.getElementById('toolbar').classList.remove('show');
+  document.getElementById('addMenu').classList.remove('show');
 }
 
 function positionToolbar(el) {
   const tb = document.getElementById('toolbar');
   const rect = el.getBoundingClientRect();
-  // Show briefly to measure, then reposition
+  
   tb.style.visibility = 'hidden';
   tb.classList.add('show');
-  const tbWidth = tb.offsetWidth || 280;
+  const tbWidth = tb.offsetWidth || 360;
   const tbHeight = tb.offsetHeight || 44;
   tb.classList.remove('show');
   tb.style.visibility = '';
@@ -279,74 +490,151 @@ function positionToolbar(el) {
   let top = rect.top - tbHeight - 8;
 
   // Clamp to viewport
-  if (left < 12) left = 12;
-  if (left + tbWidth > window.innerWidth - 12) left = window.innerWidth - tbWidth - 12;
-  if (top < 12) top = rect.bottom + 8;
+  const pad = 8;
+  if (left < pad) left = pad;
+  if (left + tbWidth > window.innerWidth - pad) left = Math.max(pad, window.innerWidth - tbWidth - pad);
+  if (top < pad) top = rect.bottom + 8;
 
   tb.style.left = left + 'px';
   tb.style.top = top + 'px';
 }
 
+// === Add Element Menu ===
+function toggleAddMenu() {
+  const menu = document.getElementById('addMenu');
+  if (menu.classList.contains('show')) {
+    menu.classList.remove('show');
+    return;
+  }
+  if (!selectedElement) { showToast('Select an element first to add near it'); return; }
+  const rect = document.getElementById('toolbar').getBoundingClientRect();
+  menu.style.left = (rect.right - 140) + 'px';
+  menu.style.top = (rect.top - 200) + 'px';
+  menu.classList.add('show');
+}
+
+function addElement(tag) {
+  document.getElementById('addMenu').classList.remove('show');
+  
+  let html = '';
+  switch (tag) {
+    case 'div': html = '<div style="padding:16px;background:#27272a;border-radius:8px;text-align:center;color:#a1a1aa;min-height:60px;display:flex;align-items:center;justify-content:center">New Div</div>'; break;
+    case 'h1': html = '<h1 style="font-size:2em;font-weight:700;margin:0.5em 0">New Heading</h1>'; break;
+    case 'h2': html = '<h2 style="font-size:1.5em;font-weight:600;margin:0.5em 0">New Subheading</h2>'; break;
+    case 'p': html = '<p style="margin:0.5em 0;line-height:1.6">New paragraph text. Double-click to edit.</p>'; break;
+    case 'img': html = '<img src="https://picsum.photos/seed/retouch/400/250" style="max-width:100%;border-radius:8px;display:block" alt="Placeholder">'; break;
+    case 'a': html = '<a href="#" style="color:#818cf8;text-decoration:underline">New link</a>'; break;
+    case 'button': html = '<button style="padding:8px 20px;background:#6366f1;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px">New Button</button>'; break;
+  }
+  
+  if (!selectedElement || !selectedElement.parentNode) {
+    document.getElementById('preview').insertAdjacentHTML('beforeend', html);
+  } else {
+    selectedElement.insertAdjacentHTML('afterend', html);
+  }
+  
+  // Re-attach handlers to new elements
+  attachClickHandlers(document.getElementById('preview'));
+  pushHistory();
+  syncCode();
+  showToast('Added &lt;' + tag + '&gt;');
+}
+
 // === Edit Commands ===
 function execEdit(command, value) {
   if (!selectedElement) { showToast('Click an element first'); return; }
+  const el = selectedElement;
 
   switch (command) {
     case 'bold':
-      const isBold = selectedElement.style.fontWeight === '700' || selectedElement.style.fontWeight === 'bold';
-      selectedElement.style.fontWeight = isBold ? '400' : '700';
+      el.style.fontWeight = (el.style.fontWeight === '700' || el.style.fontWeight === 'bold') ? '400' : '700';
       break;
 
     case 'italic':
-      const isItalic = selectedElement.style.fontStyle === 'italic';
-      selectedElement.style.fontStyle = isItalic ? 'normal' : 'italic';
+      el.style.fontStyle = el.style.fontStyle === 'italic' ? 'normal' : 'italic';
+      break;
+
+    case 'underline':
+      el.style.textDecoration = el.style.textDecoration === 'underline' ? 'none' : 'underline';
       break;
 
     case 'increaseFont':
-      const curSize = parseFloat(getComputedStyle(selectedElement).fontSize) || 16;
-      selectedElement.style.fontSize = Math.min(curSize + 2, 72) + 'px';
+      const curSize = parseFloat(getComputedStyle(el).fontSize) || 16;
+      el.style.fontSize = Math.min(curSize + FONT_SIZE_STEP, FONT_SIZE_MAX) + 'px';
       break;
 
     case 'decreaseFont':
-      const curSz = parseFloat(getComputedStyle(selectedElement).fontSize) || 16;
-      selectedElement.style.fontSize = Math.max(curSz - 2, 8) + 'px';
+      const curSz = parseFloat(getComputedStyle(el).fontSize) || 16;
+      el.style.fontSize = Math.max(curSz - FONT_SIZE_STEP, FONT_SIZE_MIN) + 'px';
+      break;
+
+    case 'fontFamily':
+      if (value) el.style.fontFamily = value;
+      break;
+
+    case 'alignLeft':
+      el.style.textAlign = 'left';
+      break;
+
+    case 'alignCenter':
+      el.style.textAlign = 'center';
+      break;
+
+    case 'alignRight':
+      el.style.textAlign = 'right';
       break;
 
     case 'textColor':
-      selectedElement.style.color = value;
+      el.style.color = value;
       break;
 
     case 'bgColor':
-      selectedElement.style.backgroundColor = value;
+      el.style.backgroundColor = value;
+      break;
+
+    case 'paddingSmall':
+      el.style.padding = '8px';
+      break;
+
+    case 'paddingMedium':
+      el.style.padding = '16px';
+      break;
+
+    case 'paddingLarge':
+      el.style.padding = '32px';
+      break;
+
+    case 'moveUp':
+      if (el.previousElementSibling) {
+        el.parentNode.insertBefore(el, el.previousElementSibling);
+        positionToolbar(el);
+      }
+      break;
+
+    case 'moveDown':
+      if (el.nextElementSibling) {
+        el.parentNode.insertBefore(el.nextElementSibling, el);
+        positionToolbar(el);
+      }
       break;
 
     case 'duplicate':
-      if (selectedElement.parentNode) {
-        const clone = selectedElement.cloneNode(true);
-        selectedElement.parentNode.insertBefore(clone, selectedElement.nextSibling);
-        // Make clone clickable
-        clone.querySelectorAll('*').forEach(el => {
-          el.addEventListener('click', function(e) {
-            e.stopPropagation();
-            selectElement(this);
-          });
-        });
-        clone.addEventListener('click', function(e) {
-          e.stopPropagation();
-          selectElement(this);
-        });
+      if (el.parentNode) {
+        const clone = el.cloneNode(true);
+        el.parentNode.insertBefore(clone, el.nextSibling);
         selectElement(clone);
-        syncCode();
       }
       break;
 
     case 'delete':
-      if (selectedElement.parentNode) {
-        const next = selectedElement.nextElementSibling || selectedElement.previousElementSibling;
-        selectedElement.remove();
+      if (el.parentNode) {
+        const next = el.nextElementSibling || el.previousElementSibling;
+        el.remove();
         clearSelection();
         if (next) selectElement(next);
+        pushHistory();
         syncCode();
+        return; // history already pushed
       }
       break;
   }
@@ -356,16 +644,21 @@ function execEdit(command, value) {
     const cs = getComputedStyle(selectedElement);
     document.getElementById('textColorPicker').value = rgbToHex(cs.color) || '#ffffff';
     document.getElementById('bgColorPicker').value = rgbToHex(cs.backgroundColor) || '#6366f1';
-    // Reposition toolbar in case element moved
     positionToolbar(selectedElement);
   }
 
+  pushHistory();
+  syncCode();
+}
+
+// === History batch: push after certain operations ===
+function registerChange() {
+  pushHistory();
   syncCode();
 }
 
 function syncCode() {
   const preview = document.getElementById('preview');
-  // Skip empty state
   const empty = document.getElementById('emptyState');
   if (empty) return;
   currentCode = preview.innerHTML;
@@ -376,26 +669,16 @@ function syncCode() {
 function exportHTML() {
   const preview = document.getElementById('preview');
   const empty = document.getElementById('emptyState');
-  if (empty) { showToast('Nothing to export — paste HTML first'); return; }
+  if (empty) { showToast('Nothing to export - paste HTML first'); return; }
 
-  // Clean up: remove our selection markers
   preview.querySelectorAll('.retouch-selected').forEach(el => el.classList.remove('retouch-selected'));
+  preview.querySelectorAll('.retouch-editing').forEach(el => {
+    el.contentEditable = 'false';
+    el.classList.remove('retouch-editing');
+  });
 
   const html = preview.innerHTML;
-  const fullDoc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Page</title>
-<style>
-  /* Your styles here */
-</style>
-</head>
-<body>
-${html}
-</body>
-</html>`;
+  const fullDoc = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>My Page</title>\n</head>\n<body>\n' + html + '\n</body>\n</html>';
 
   const blob = new Blob([fullDoc], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -415,7 +698,6 @@ document.getElementById('fileUpload').addEventListener('change', function(e) {
   const reader = new FileReader();
   reader.onload = function(ev) {
     const text = ev.target.result;
-    // Extract body content
     const bodyMatch = text.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     const content = bodyMatch ? bodyMatch[1] : text;
     document.getElementById('codeInput').value = content;
@@ -455,9 +737,26 @@ document.addEventListener('mouseup', function() {
 
 // === Keyboard shortcuts ===
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') clearSelection();
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); render(); }
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportHTML(); }
+  const ctrl = e.ctrlKey || e.metaKey;
+  
+  if (e.key === 'Escape') {
+    if (isInlineEditing) { document.activeElement?.blur(); return; }
+    clearSelection();
+    return;
+  }
+  
+  if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+  if (ctrl && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); return; }
+  if (ctrl && e.key === 'y') { e.preventDefault(); redo(); return; }
+  if (ctrl && e.key === 'Enter') { e.preventDefault(); render(); return; }
+  if (ctrl && e.key === 's') { e.preventDefault(); exportHTML(); return; }
+  
+  // Quick format shortcuts when element is selected
+  if (selectedElement && !isInlineEditing) {
+    if (ctrl && e.key === 'b') { e.preventDefault(); execEdit('bold'); return; }
+    if (ctrl && e.key === 'i') { e.preventDefault(); execEdit('italic'); return; }
+    if (ctrl && e.key === 'u') { e.preventDefault(); execEdit('underline'); return; }
+  }
 });
 
 // === Toast ===
@@ -482,16 +781,19 @@ function rgbToHex(rgb) {
 // === Handle global click to deselect ===
 document.addEventListener('click', function(e) {
   const tb = document.getElementById('toolbar');
-  if (tb.classList.contains('show') && !tb.contains(e.target)) {
-    // Check if click is on preview element
+  const am = document.getElementById('addMenu');
+  if (tb.classList.contains('show') && !tb.contains(e.target) && !am.contains(e.target)) {
     const preview = document.getElementById('preview');
     if (!preview.contains(e.target)) {
       clearSelection();
     }
   }
+  if (am.classList.contains('show') && !am.contains(e.target) && !tb.contains(e.target)) {
+    am.classList.remove('show');
+  }
 });
 
-console.log('Retouch ready — paste HTML, click Render, then click elements to edit');
+console.log('Retouch v3 ready - paste HTML, click Render, then click elements to edit');
 </script>
 </body>
 </html>
