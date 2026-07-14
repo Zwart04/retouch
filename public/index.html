@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual HTML Editor — edit website tanpa coding</title>
+  <link rel="stylesheet" href="/styles.css?v=20260713s" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◧</span>
+      <span>Visual HTML Editor</span>
+    </div>
+    <div class="doc-name">
+      <input id="docName" type="text" value="Website Baru" placeholder="Nama project" />
+    </div>
+    <div class="top-actions">
+      <button id="btnImport" class="btn">Impor HTML</button>
+      <button id="btnSave" class="btn">Simpan</button>
+      <button id="btnLoad" class="btn">Buka</button>
+      <button id="btnExport" class="btn btn-accent">Ekspor HTML</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- KIRI: blok yang bisa ditambah -->
+    <aside class="panel panel-left" id="panelLeft">
+      <div class="panel-head">
+        <h2 class="panel-title">Tambah Blok</h2>
+        <button class="panel-collapse" id="btnCollapseLeft" title="Sembunyikan panel" aria-label="Sembunyikan panel kiri">⟨</button>
+      </div>
+      <div class="panel-rail" id="railLeft" title="Tampilkan panel blok">⟩</div>
+      <p class="panel-hint">Klik untuk menambah di bawah, atau seret ke posisi mana pun di halaman.</p>
+      <div class="block-palette" id="palette">
+        <button class="palette-item" draggable="true" data-type="section">▭ Section (wadah)</button>
+        <button class="palette-item" draggable="true" data-type="heading">T Heading (judul)</button>
+        <button class="palette-item" draggable="true" data-type="text">¶ Teks / Paragraf</button>
+        <button class="palette-item" draggable="true" data-type="button">⬚ Tombol</button>
+        <button class="palette-item" draggable="true" data-type="image">▣ Gambar</button>
+        <button class="palette-item" draggable="true" data-type="divider">— Garis Pembatas</button>
+      </div>
+      <div class="panel-sep"></div>
+      <h2 class="panel-title">CSS Kustom</h2>
+      <p class="panel-hint">Edit gaya lanjutan (warna, font, jarak) lewat CSS langsung.</p>
+      <textarea id="cssEditor" class="css-editor" spellcheck="false" placeholder="/* CSS halaman ditampilkan di sini */"></textarea>
+    </aside>
+
+    <!-- TENGAH: canvas = iframe -->
+    <main class="canvas-wrap">
+      <div class="canvas-toolbar">
+        <button id="btnDeviceDesktop" class="dev-btn active" title="Desktop">🖥 Desktop</button>
+        <button id="btnDeviceMobile" class="dev-btn" title="HP">📱 HP</button>
+        <span class="canvas-hint">Klik elemen untuk pilih · klik dua kali untuk edit teks · tarik gagang biru untuk geser</span>
+        <label class="edit-toggle"><input type="checkbox" id="editMode" checked /> Mode Edit</label>
+      </div>
+      <div class="canvas-frame" id="canvasFrame">
+        <iframe id="frame" class="canvas" title="Pratinjau halaman"></iframe>
+      </div>
+    </main>
+
+    <!-- KANAN: properti elemen terpilih -->
+    <aside class="panel panel-right" id="panelRight">
+      <div class="panel-head">
+        <h2 class="panel-title">Properti Elemen</h2>
+        <button class="panel-collapse" id="btnCollapseRight" title="Sembunyikan panel" aria-label="Sembunyikan panel kanan">⟩</button>
+      </div>
+      <div class="panel-rail" id="railRight" title="Tampilkan panel properti">⟨</div>
+      <div id="propEmpty" class="prop-empty">Klik sebuah elemen di halaman (kiri/kanan) untuk mengubah teks, warna, dan tata letaknya.</div>
+      <div id="propForm" class="prop-form hidden">
+        <div class="prop-row">
+          <label>Tag</label>
+          <div id="propTag" class="prop-type">—</div>
+        </div>
+        <div class="prop-row" id="rowText">
+          <label>Teks</label>
+          <textarea id="propText" rows="3"></textarea>
+        </div>
+        <div class="prop-row" id="rowSrc">
+          <label>URL Gambar</label>
+          <input id="propSrc" type="text" placeholder="https://..." />
+        </div>
+        <div class="prop-row" id="rowLink">
+          <label>Tautan (URL)</label>
+          <input id="propLink" type="text" placeholder="https://... atau #" />
+        </div>
+        <div class="prop-row">
+          <label>Warna Teks</label>
+          <input id="propColor" type="color" value="#1a1a1a" />
+        </div>
+        <div class="prop-row">
+          <label>Warna Latar</label>
+          <input id="propBg" type="color" value="#ffffff" />
+        </div>
+        <div class="prop-row">
+          <label>Rata</label>
+          <select id="propAlign">
+            <option value="">(default)</option>
+            <option value="left">Kiri</option>
+            <option value="center">Tengah</option>
+            <option value="right">Kanan</option>
+          </select>
+        </div>
+        <div class="prop-row">
+          <label>Jenis Font</label>
+          <select id="propFontFamily">
+            <option value="">(default)</option>
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+            <option value="'Times New Roman', Times, serif">Times New Roman</option>
+            <option value="'Courier New', Courier, monospace">Courier New</option>
+            <option value="'Segoe UI', Tahoma, Geneva, sans-serif">Segoe UI</option>
+            <option value="Verdana, Geneva, sans-serif">Verdana</option>
+            <option value="'Trebuchet MS', 'Lucida Sans Unicode', sans-serif">Trebuchet MS</option>
+            <option value="'Palatino Linotype', 'Book Antiqua', Palatino, serif">Palatino</option>
+            <option value="Impact, Haettenschweiler, sans-serif">Impact</option>
+            <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
+          </select>
+        </div>
+        <div class="prop-row">
+          <label>Ukuran Font (px)</label>
+          <input id="propFontSize" type="number" min="8" max="120" value="" placeholder="default" />
+        </div>
+        <div class="prop-row">
+          <label>Format Teks</label>
+          <div class="fmt-row">
+            <button id="propBold" class="fmt-btn" title="Tebal (Bold)"><b>B</b></button>
+            <button id="propItalic" class="fmt-btn" title="Miring (Italic)"><i>I</i></button>
+            <button id="propUnderline" class="fmt-btn" title="Garis Bawah (Underline)"><u>U</u></button>
+          </div>
+        </div>
+        <div class="prop-row" id="rowPad">
+          <label>Jarak dalam (padding) px</label>
+          <input id="propPad" type="number" min="0" max="200" value="0" />
+        </div>
+        <div class="prop-actions">
+          <button id="btnUp" class="btn btn-sm">↑ Ke Atas</button>
+          <button id="btnDown" class="btn btn-sm">↓ Ke Bawah</button>
+          <button id="btnDel" class="btn btn-sm btn-danger">Hapus</button>
+        </div>
+      </div>
+    </aside>
+    <button class="ws-fab-left" id="fabLeft" aria-label="Blok">＋</button>
+    <button class="ws-fab-right" id="fabRight" aria-label="Properti">⚙</button>
+    <div class="ws-backdrop" id="wsBackdrop"></div>
+  </div>
+
+  <!-- Modal impor -->
+  <div id="importModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Impor Kode HTML</h3>
+      <p class="modal-hint">Tempel kode HTML LENGKAP dari ChatGPT / Claude / v0 (termasuk &lt;style&gt; dan &lt;head&gt;). Desain asli akan tampil persis, lalu bisa diedit elemen per elemen.</p>
+      <textarea id="importArea" rows="12" placeholder="<html>...tempel kode HTML lengkap di sini...</html>"></textarea>
+      <div class="modal-actions">
+        <button id="btnImportCancel" class="btn">Batal</button>
+        <button id="btnImportOk" class="btn btn-accent">Impor & Tampilkan</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Project Tersimpan</h3>
+      <div id="loadList" class="load-list"></div>
+      <div class="modal-actions">
+        <button id="btnLoadClose" class="btn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Kode HTML Hasil</h3>
+      <p class="modal-hint">Salin kode ini, lalu tempel ke hosting/editor HTML mana pun. Ini hasil akhir websitemu (desain utuh).</p>
+      <textarea id="exportArea" rows="14" readonly></textarea>
+      <div class="modal-actions">
+        <button id="btnExportCopy" class="btn btn-accent">Salin</button>
+        <button id="btnExportDownload" class="btn">Unduh .html</button>
+        <button id="btnExportClose" class="btn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/doc.js?v=20260713s"></script>
+  <script src="/editor.js?v=20260713s"></script>
+</body>
+</html>
