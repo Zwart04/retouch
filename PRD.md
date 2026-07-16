@@ -1,39 +1,26 @@
-# Retouch v3 — PRD
+# Retouch v4 — Mini PRD
 
-## Problem
-Orang non-teknis sering pakai AI (ChatGPT, Claude, v0) untuk generate HTML website, tapi begitu hasilnya jadi, mereka gak bisa mengeditnya secara visual karena tools yang ada (GrapesJS, Webstudio, dll) terlalu berat/kompleks untuk pemula. Retouch adalah editor visual zero-install yang sangat sederhana: paste HTML, klik elemen, edit propertinya.
+## Masalah
+Retouch v3 sudah bisa edit teks, warna, font, dan urutan elemen (via tombol up/down). Tapi belum ada drag-and-drop visual — fitur yang paling membedakan editor biasa dari Elementor/Divi. Pengguna masih harus klik tombol berkali-kali untuk mindahin elemen.
 
-## Target User
-- Orang yang "ngoding" pakai AI tapi gak paham kode HTML
-- Content creator / marketer yang perlu edit landing page sederhana
-- Siapa pun yang punya file HTML dan perlu ubah tampilan tanpa buka code editor
+## Target Pengguna
+Orang non-teknis yang generate website pakai AI (ChatGPT, Claude, v0, Bolt) tapi ga bisa nulis/mengerti HTML. Mereka butuh tool gratis, zero-install, yang bisa edit hasil generate AI secara visual kayak Elementor.
 
-## Fitur Inti v3 (Dari V2 yang sudah ada)
-1. **Font-family selector** (dropdown 10+ font) — BARU
-2. **Text alignment** (left, center, right, justify) — BARU
-3. **Underline toggle** — BARU
-4. **Undo/Redo** (history stack, batasi 50 langkah) — BARU
-5. **Drag-and-drop reorder** (pindah posisi elemen naik/turun dalam parent) — BARU
-6. **Add element** (insert div, h1, h2, p, img via toolbar) — BARU
-7. **Inline text editing** (double-click untuk edit teks langsung di preview) — BARU
-8. **Padding/Margin quick controls** (preset kecil, sedang, besar) — BARU
-
-Fitur yang SUDAH ADA di v2:
-- Bold, Italic
-- Font size (+/-)
-- Text color, Background color
-- Duplicate, Delete
-- Open file, Export
-- Resizable split panels
+## Fitur Inti v4
+1. **Drag-and-drop posisi elemen** — klik & seret elemen (via handle) ke posisi baru di preview. Visual indicator garis putus-putus muncul di antara elemen pas drag.
+2. **Image URL editor** — klik gambar yang dipilih, muncul input buat ganti src URL.
+3. **Margin controls** — preset margin (none, small, medium, large) via toolbar.
+4. **Width presets** — full-width, contained, auto, half-width.
+5. **Grid background toggle** — toggle grid overlay biar alignment keliatan.
+6. **Smart preview** — tombol toggle buat liat hasil di ukuran Desktop / Tablet / Mobile.
 
 ## Tech Stack
-- Single HTML file (100% client-side)
-- Vanilla JS (no framework)
-- Tailwind CSS v4 CDN (seperti sebelumnya)
-- Zero dependencies, zero install
+- Vanilla JS (sama seperti v3, zero dependency)
+- Tailwind CSS v4 CDN (via @tailwindcss/browser)
+- Satu file index.html, deploy ke GitHub Pages
 
-## Out of Scope v3
-- Layer management (z-index, hierarchy tree)
-- CSS class editing
-- Responsive preview (mobile/tablet toggle)
-- Cloud save / account system
+## Kenapa Beda dari yang Sudah Ada
+- Gratis total, no signup, no server
+- Fokus spesifik: edit hasil AI-generated HTML
+- Zero-install, buka browser langsung pakai
+- GrapesJS/Webstudio terlalu kompleks untuk orang non-teknis

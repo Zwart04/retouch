@@ -1,103 +1,146 @@
 # Retouch
 
-**Visual HTML editor for AI-generated code.**  
-Paste HTML from ChatGPT, Claude, v0 — edit it visually, export clean code.
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
+![GitHub Pages](https://img.shields.io/badge/deploy-GitHub%20Pages-blue)
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/demo-live-green.svg)](https://zwart04.github.io/retouch)
-[![No framework](https://img.shields.io/badge/vanilla-js-f7df1e?logo=javascript&logoColor=black)]()
+**Visual HTML editor for AI-generated code.** Paste any HTML from ChatGPT, Claude, v0, or Bolt — edit it visually with drag-and-drop, without writing a single line of code. Zero install, zero dependencies, runs entirely in your browser.
 
-## Why Retouch?
+![Retouch Screenshot](docs/screenshot.png)
 
-- **63% of "vibe coders" are non-developers** (TechTimes, May 2026). They can generate HTML with AI but can't edit it.
-- Existing editors are SaaS, require installation, or are complex CMS tools.
-- **Retouch is zero-install, zero-cost, zero-framework.** Open the page, paste your AI-generated HTML, edit visually, export.
+> **Live demo:** [zwart04.github.io/retouch](https://zwart04.github.io/retouch/)
+
+---
+
+## The Problem
+
+Millions of people use AI to generate websites. But the output is raw HTML code. Non-technical users have no easy way to:
+
+- Rearrange elements (move a section up/down)
+- Change colors, fonts, and sizes
+- Edit text content
+- Preview on different screen sizes
+- Export clean, production-ready HTML
+
+Existing solutions like GrapesJS or Webstudio are powerful but complex. Retouch is designed for **one thing**: take HTML from any AI tool and let you edit it visually.
+
+---
 
 ## Features
 
-- **Paste & render** — paste HTML from any AI tool, see it instantly
-- **Click to edit** — select any element, change text, colors, size
-- **Inline text editing** — double-click any text to edit it directly in the preview
-- **Bold / Italic / Underline** — toggle text formatting
-- **Font family** — choose from 10 fonts (Inter, Georgia, Times, Arial, etc.)
-- **Font size** — increase / decrease per element
-- **Text alignment** — left, center, right
-- **Text & background color** — pick any color with native color picker
-- **Padding presets** — small, medium, large with one click
-- **Move up / down** — reorder elements in their parent container
-- **Add element** — insert div, heading, paragraph, image, link, or button
-- **Duplicate & delete** — copy or remove elements
-- **Undo / Redo** — full history with Ctrl+Z / Ctrl+Shift+Z
-- **Export** — download clean HTML file
-- **Open HTML file** — load existing HTML files directly
-- **Works offline** — after first load, everything runs client-side
-- **100% free** — open source, MIT license
+- ** Drag-and-Drop Reordering** — Click the dot handle and drag any element to a new position
+- **Formatting Toolbar** — Bold, italic, underline, font size, font family (10 fonts)
+- **Color Pickers** — Change text color and background color visually
+- **Text Alignment** — Left, center, right
+- **Padding & Margin Presets** — Quick presets for spacing (none, small, medium, large)
+- **Width Presets** — Full width, contained (max 800px), half width, auto
+- **Add Elements** — Insert div, h1, h2, p, img, link, button
+- **Image URL Editor** — Double-click any image to change its source URL
+- **Inline Text Editing** — Double-click any text to edit in-place
+- **Undo / Redo** — 50-step undo history
+- **Responsive Preview** — Toggle between Desktop, Tablet, and Mobile views
+- **Grid Overlay** — Toggle alignment grid
+- **Move Up / Down** — Fine-tune element position with buttons
+- **Duplicate & Delete** — Clone or remove any element
+- **Export Clean HTML** — Download a complete, production-ready HTML file
+- **Open HTML Files** — Open existing HTML files from your computer
+- **Dark Theme** — Easy on the eyes, built for focus
 
-## Usage
+---
 
-1. Open [retouch.zwart04.github.io](https://zwart04.github.io/retouch) (or open `index.html` locally)
-2. Paste your AI-generated HTML in the left panel
-3. Click **Render**
-4. Click any element in the preview to select it
-5. Use the floating toolbar to edit
-6. Click **Export** to download your page
+## How to Use
+
+1. Go to [zwart04.github.io/retouch](https://zwart04.github.io/retouch/)
+2. **Paste** your HTML code from ChatGPT, Claude, v0, or any AI tool into the left panel
+3. Click **Render** to see it visually
+4. **Click** any element to select it and show the formatting toolbar
+5. **Drag** the dot handle to reorder elements
+6. **Double-click** text to edit inline, or an image to change its URL
+7. Click **Export** to download your edited HTML
 
 ### Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Cmd/Ctrl + Enter` | Render |
-| `Cmd/Ctrl + S` | Export |
-| `Cmd/Ctrl + Z` | Undo |
-| `Cmd/Ctrl + Shift + Z` or `Cmd/Ctrl + Y` | Redo |
-| `Cmd/Ctrl + B` | Bold (when element selected) |
-| `Cmd/Ctrl + I` | Italic (when element selected) |
-| `Cmd/Ctrl + U` | Underline (when element selected) |
-| `Escape` | Deselect / stop editing |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
+| `Ctrl+Enter` | Render |
+| `Ctrl+S` | Export |
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+U` | Underline |
+| `Delete` / `Backspace` | Delete selected element |
+| `Escape` | Deselect / close popovers |
+
+---
+
+## Why Retouch?
+
+| | Retouch | GrapesJS | Webstudio |
+|---|---|---|---|
+| Price | Free | Free (self-hosted) | Freemium |
+| Install | Zero — open browser | Requires setup | Requires account |
+| Dependencies | 0 | Many | Node.js |
+| Focus | Edit AI-generated HTML | Full site builder | Full site builder |
+| File size | ~45KB (one HTML file) | 1MB+ | Full app |
+
+Retouch does **one thing well**: let non-technical people take AI-generated HTML and make it their own.
+
+---
 
 ## Tech Stack
 
-- **Vanilla HTML/CSS/JS** — zero framework, zero build step
-- **Tailwind CSS v4** — via CDN
-- **No runtime dependencies** — everything is in one file
+- Vanilla JavaScript (zero dependencies)
+- Tailwind CSS v4 (via CDN — `@tailwindcss/browser`)
+- Single HTML file — deploy anywhere
+- Hosted on GitHub Pages
 
-## Run Locally
+---
+
+## Development
+
+Retouch is a single `index.html` file. To run locally:
 
 ```bash
+# Clone the repo
 git clone https://github.com/Zwart04/retouch.git
 cd retouch
-# Open index.html in your browser
+
+# Open in browser — that's it!
 open index.html
+# or: python3 -m http.server 8080
 ```
 
-No server needed. No `npm install`. No build step.
+No build step. No Node.js. No npm install.
 
-## Why Self-Hosted?
-
-- Your code never leaves your machine
-- Works without internet (after initial load for Tailwind CDN)
-- MIT licensed — use it commercially, modify it, embed it
+---
 
 ## Roadmap
 
-- [x] Paste & render HTML
-- [x] Visual element editing (text, color, size, font)
-- [x] Bold/italic/underline toggle
-- [x] Font family selector (10 fonts)
-- [x] Text alignment (left, center, right)
-- [x] Padding presets (small, medium, large)
-- [x] Inline text editing (double-click)
-- [x] Add element (div, h1, h2, p, img, a, button)
-- [x] Move up / down reordering
-- [x] Duplicate & delete elements
-- [x] Undo / Redo (50-step history)
-- [x] Export to HTML file
-- [x] Open existing HTML files
-- [ ] Image URL / alt editing
-- [ ] Tailwind class editing panel
-- [ ] Drag-and-drop (mouse-based, not just buttons)
-- [ ] PWA support (installable offline)
+- [x] Drag-and-drop reordering
+- [x] Image URL editor (double-click)
+- [x] Margin presets
+- [x] Width presets
+- [x] Grid overlay
+- [x] Responsive preview (Desktop / Tablet / Mobile)
+- [ ] Copy/paste elements
+- [ ] Undo/redo for drag operations
+- [ ] Background image support
+- [ ] Export with inline styles vs. CSS classes option
+- [ ] i18n / multi-language
+
+---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
+
+---
+
+## Contributing
+
+PRs welcome! This is a single-file app designed to stay simple. If you have an idea, open an issue first.
+
+---
+
+*Made with for people who just want their AI website to look right.*
